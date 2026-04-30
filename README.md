@@ -131,13 +131,6 @@ SHOW DATABASES;
 -- Create the application user
 CREATE USER 'securebank_user'@'localhost' IDENTIFIED BY 'SecurePass@2026';
 
--- Set MySQL native password authentication
-ALTER USER 'securebank_user'@'localhost'
-  IDENTIFIED WITH mysql_native_password BY 'SecurePass@2026';
-
--- Refresh privileges
-FLUSH PRIVILEGES;
-
 -- Grant full access to the SecureBank database (only this DB)
 GRANT ALL PRIVILEGES ON securebank_db.* TO 'securebank_user'@'localhost';
 
