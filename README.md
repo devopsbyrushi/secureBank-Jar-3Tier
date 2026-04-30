@@ -81,12 +81,6 @@ When MySQL is **freshly installed** and root has **no password yet**.
 sudo mysql
 ```
 
-> 💡 **Why just `sudo mysql` and not `sudo mysql -u root -p`?**
-> On Ubuntu 22.04+, the MySQL root user uses **socket authentication** by default —
-> meaning it has NO password yet, but only accepts logins from the system root user
-> (via `sudo`). So `sudo mysql -u root -p` will fail with "Access denied" because
-> there's no password to enter. Just run `sudo mysql` and you'll be inside!
-
 ### Step 2: Set the root password
 
 Inside the MySQL shell:
