@@ -92,8 +92,7 @@ sudo mysql
 Inside the MySQL shell:
 
 ```sql
-ALTER USER 'root'@'localhost'
-  IDENTIFIED WITH mysql_native_password BY 'YourPassword@123';
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'YourPassword@123';
 
 FLUSH PRIVILEGES;
 
