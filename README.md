@@ -5,164 +5,416 @@
 > **Package:** `com.rushi.securebank`
 
 ---
+# 🛠️ MySQL Lab Guide — SecureBank Project
 
-## 🎯 What This Is
-
-A complete **3-tier banking application** built with Spring Boot + MySQL + Thymeleaf,
-packaged as a standalone JAR with an embedded Tomcat server.
-
-The UI is bank-grade (ICICI-inspired design), with:
-- 🏛️ Bank landing page with login form
-- 📝 Customer registration (auto-generates account number like `SB202600042`)
-- 💵 Deposit / Withdraw / Transfer operations
-- 📊 Transaction history with filters
+> **Trainer:** Rushi | **Course:** DevOps with Multi-Cloud Training
+> **Project:** SecureBank (3-Tier Java Application)
+> **Lab:** Complete MySQL command reference
 
 ---
 
-## 📊 Database Schema
+## 📑 Quick Reference
 
-| Database | Table | Description |
-|---|---|---|
-| **`securebank_db`** | `customers` | Customer accounts (was `account` in trainer's example) |
-| **`securebank_db`** | `transaction_history` | All banking transactions (was `transaction`) |
+### 🟢 Main Lab Flow
 
-> 💡 **Why `transaction_history` instead of `transaction`?**
-> `TRANSACTION` is a reserved SQL keyword — using a clearer name avoids issues
-> with raw SQL queries and makes the intent obvious.
+1. [Install MySQL](#1-install-mysql)
+2. [Manage MySQL Service](#2-manage-mysql-service)
+3. [Set Root Password (First Time)](#3-set-root-password-first-time)
+4. [Create SecureBank Database & User](#4-create-securebank-database--user)
+5. [Validate the Setup](#5-validate-the-setup)
+6. [Quick Cheat Sheet](#6-quick-cheat-sheet)
+
+### 🔧 Reference (Use Only If Needed)
+
+7. [Change Existing Root Password](#7-change-existing-root-password)
+8. [Reset Forgotten Root Password](#8-reset-forgotten-root-password)
+9. [Uninstall MySQL Completely](#9-uninstall-mysql-completely)
+10. [Reinstall MySQL (Fresh Start)](#10-reinstall-mysql-fresh-start)
 
 ---
 
-## ⚡ Quick Start
+# 🟢 Main Lab Flow
 
-### Prerequisites
-- ✅ Java 17 (JDK)
-- ✅ Maven 3.6+
-- ✅ MySQL 8 running on localhost:3306
-
-### Step 1: Set Up MySQL Database
-
-Run the schema setup script:
+## 1. Install MySQL
 
 ```bash
-sudo mysql -u root -p < src/main/resources/db/schema.sql
+# Update package list
+sudo apt update
+
+# Install MySQL Server
+sudo apt-get install mysql-server -y
 ```
 
-Or run manually inside MySQL:
+---
+
+## 2. Manage MySQL Service
+
+```bash
+# Start MySQL
+sudo systemctl start mysql
+
+# Stop MySQL
+sudo systemctl stop mysql
+
+# Restart MySQL
+sudo systemctl restart mysql
+
+# Enable MySQL to start on boot
+sudo systemctl enable mysql
+
+# Disable auto-start on boot
+sudo systemctl disable mysql
+
+# Check status
+sudo systemctl status mysql
+```
+
+---
+
+## 3. Set Root Password (First Time)
+
+When MySQL is **freshly installed** and root has **no password yet**.
+
+### Step 1: Login as root (no password needed)
+
+```bash
+sudo mysql
+```
+
+> 💡 **Why just `sudo mysql` and not `sudo mysql -u root -p`?**
+> On Ubuntu 22.04+, the MySQL root user uses **socket authentication** by default —
+> meaning it has NO password yet, but only accepts logins from the system root user
+> (via `sudo`). So `sudo mysql -u root -p` will fail with "Access denied" because
+> there's no password to enter. Just run `sudo mysql` and you'll be inside!
+
+### Step 2: Set the root password
+
+Inside the MySQL shell:
+
 ```sql
-CREATE DATABASE securebank_db;
-CREATE USER 'securebank_user'@'localhost' IDENTIFIED BY 'SecurePass@2026';
-GRANT ALL PRIVILEGES ON securebank_db.* TO 'securebank_user'@'localhost';
+ALTER USER 'root'@'localhost'
+  IDENTIFIED WITH mysql_native_password BY 'YourPassword@123';
+
 FLUSH PRIVILEGES;
+
+EXIT;
 ```
 
-> 💡 If you want to use different credentials, edit
-> `src/main/resources/application.properties`.
-
-### Step 2: Build the JAR
+### Step 3: Login with the new password
 
 ```bash
-cd SecureBank-JAR
-mvn clean package
+mysql -u root -p
 ```
 
-Output: `target/securebank.jar`
+Enter `YourPassword@123` when prompted.
 
-> ⚠️ If tests fail: `mvn clean package -DskipTests=true`
+> 💡 Replace `YourPassword@123` with your actual strong password.
 
-### Step 3: Run the JAR
+---
 
-#### Option A: Foreground (Ctrl+C to stop)
+## 4. Create SecureBank Database & User
+
+After logging in as root, set up the database and user for our SecureBank app.
+
 ```bash
-java -jar target/securebank.jar
+mysql -u root -p
 ```
 
-#### Option B: Background (recommended for demo)
+Inside the MySQL shell:
+
+```sql
+-- Create the SecureBank database
+CREATE DATABASE securebank_db;
+
+-- Verify it was created
+SHOW DATABASES;
+
+-- Create the application user
+CREATE USER 'securebank_user'@'localhost' IDENTIFIED BY 'SecurePass@2026';
+
+-- Set MySQL native password authentication
+ALTER USER 'securebank_user'@'localhost'
+  IDENTIFIED WITH mysql_native_password BY 'SecurePass@2026';
+
+-- Refresh privileges
+FLUSH PRIVILEGES;
+
+-- Grant full access to the SecureBank database (only this DB)
+GRANT ALL PRIVILEGES ON securebank_db.* TO 'securebank_user'@'localhost';
+
+-- Refresh privileges again
+FLUSH PRIVILEGES;
+
+-- Verify the user was created
+SELECT user, host FROM mysql.user;
+
+-- Exit
+EXIT;
+```
+
+### Test the new user
+
 ```bash
-nohup java -jar target/securebank.jar > app.log 2>&1 &
-echo $! > app.pid
-echo "✅ Started (PID $(cat app.pid))"
+mysql -u securebank_user -p
 ```
 
-### Step 4: Open in Browser
+Enter password: `SecurePass@2026`
 
+---
+
+## 5. Validate the Setup
+
+After running the application and performing some deposits/withdrawals, verify the data:
+
+```bash
+mysql -u securebank_user -p
 ```
-http://<your-server-ip>:8080
+
+Inside the MySQL shell:
+
+```sql
+-- See all databases
+SHOW DATABASES;
+
+-- Switch to SecureBank database
+USE securebank_db;
+
+-- See all tables (auto-created by Hibernate when app runs)
+SHOW TABLES;
+
+-- View customer accounts
+SELECT * FROM customers;
+
+-- View transaction history
+SELECT * FROM transaction_history;
+
+-- Exit
+EXIT;
 ```
 
 ---
 
-## 🛑 Stop the App
+## 6. Quick Cheat Sheet
 
-Foreground: `Ctrl + C`
-
-Background:
-```bash
-kill $(cat app.pid)
-rm app.pid
-# Or force-kill anything on port 8080
-sudo kill -9 $(sudo lsof -t -i:8080)
-```
-
----
-
-## 📂 Project Structure
-
-```
-SecureBank-JAR/
-├── pom.xml                                  ← <packaging>jar</packaging>
-├── README.md
-└── src/
-    ├── main/
-    │   ├── java/com/rushi/securebank/
-    │   │   ├── SecureBankApplication.java          (main class)
-    │   │   ├── config/SecurityConfig.java
-    │   │   ├── controller/SecureBankController.java
-    │   │   ├── model/
-    │   │   │   ├── Customer.java                   (was Account)
-    │   │   │   └── TransactionHistory.java         (was Transaction)
-    │   │   ├── repository/
-    │   │   │   ├── CustomerRepository.java
-    │   │   │   └── TransactionHistoryRepository.java
-    │   │   └── service/CustomerService.java
-    │   └── resources/
-    │       ├── application.properties              (MySQL config)
-    │       ├── db/schema.sql                       (database setup)
-    │       └── templates/
-    │           ├── login.html                      (bank landing + login)
-    │           ├── register.html
-    │           ├── dashboard.html
-    │           └── transactions.html
-    └── test/
-        └── java/com/rushi/securebank/
-            └── SecureBankApplicationTests.java
-```
-
----
-
-## 🎓 Demo Flow for Class
-
-1. **Show the source:** Walk through `Customer.java`, `TransactionHistory.java`, point to schema
-2. **Build:** `mvn clean package` → point out `target/securebank.jar`
-3. **Run:** `java -jar target/securebank.jar` → no Tomcat install needed!
-4. **Browser:** Bank landing page loads at `http://server:8080`
-5. **Register:** Create user → Hibernate auto-creates `customers` table
-6. **Login → Dashboard:** Real account number shown (e.g. SB202600042), balance ₹0.00
-7. **Deposit/Withdraw/Transfer:** Demo all operations
-8. **Transactions:** Show filtered history with descriptions
-
----
-
-## 🔧 Common Issues
-
-| Problem | Fix |
+| Task | Command |
 |---|---|
-| `Port 8080 already in use` | `sudo kill -9 $(sudo lsof -t -i:8080)` |
-| `Communications link failure` | MySQL not running — `sudo systemctl start mysql` |
-| `Access denied for user 'securebank_user'` | Re-run schema.sql or check credentials |
-| `Unknown database 'securebank_db'` | Run schema.sql first |
-| `mvn: command not found` | `sudo apt install maven` |
-| Build fails on tests | `mvn clean package -DskipTests=true` |
+| **Install MySQL** | `sudo apt-get install mysql-server -y` |
+| **Start MySQL** | `sudo systemctl start mysql` |
+| **Stop MySQL** | `sudo systemctl stop mysql` |
+| **Status** | `sudo systemctl status mysql` |
+| **Login (first time)** | `sudo mysql -u root` |
+| **Login (with password)** | `mysql -u root -p` |
+| **Set/Change password** | `ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'NewPass';` |
+| **Apply changes** | `FLUSH PRIVILEGES;` |
+| **Show databases** | `SHOW DATABASES;` |
+| **Use database** | `USE securebank_db;` |
+| **Show tables** | `SHOW TABLES;` |
+| **View customers** | `SELECT * FROM customers;` |
+| **View transactions** | `SELECT * FROM transaction_history;` |
+| **Exit MySQL** | `EXIT;` |
 
 ---
 
-🛠️ **Banking Application by Rushi** · DevOps Multi-Cloud Training · For Educational Use Only
+## 📝 Credentials Summary (Save These!)
+
+| What | Value |
+|---|---|
+| **Database** | `securebank_db` |
+| **App User** | `securebank_user` |
+| **App Password** | `SecurePass@2026` |
+| **Root User** | `root` |
+| **Root Password** | `YourPassword@123` *(or whatever you set)* |
+| **Default Port** | `3306` |
+
+---
+
+---
+
+# 🔧 Reference Section
+
+> 📌 **Use these only if needed** — they are for password recovery, troubleshooting, and clean-up scenarios.
+
+---
+
+## 7. Change Existing Root Password
+
+Use this when root **already has a password** and you want to change it.
+
+### Step 1: Login with the old password
+
+```bash
+mysql -u root -p
+```
+
+### Step 2: Set the new password
+
+Inside the MySQL shell:
+
+```sql
+ALTER USER 'root'@'localhost'
+  IDENTIFIED WITH mysql_native_password BY 'NewPassword@456';
+
+FLUSH PRIVILEGES;
+
+EXIT;
+```
+
+### Step 3: Test the new password
+
+```bash
+mysql -u root -p
+```
+
+---
+
+## 8. Reset Forgotten Root Password
+
+Use this when you **forgot the root password** and can't login.
+
+### Step 1: Stop MySQL
+
+```bash
+sudo systemctl stop mysql
+```
+
+### Step 2: Start MySQL in safe mode (skip auth)
+
+```bash
+sudo mkdir -p /var/run/mysqld
+sudo chown mysql:mysql /var/run/mysqld
+sudo mysqld_safe --skip-grant-tables --skip-networking &
+```
+
+Wait 5-8 seconds. Press `Enter` if your terminal looks frozen.
+
+### Step 3: Login without password
+
+```bash
+sudo mysql
+```
+
+### Step 4: Reset the password
+
+Inside the MySQL shell:
+
+```sql
+FLUSH PRIVILEGES;
+
+ALTER USER 'root'@'localhost'
+  IDENTIFIED WITH mysql_native_password BY 'NewPassword@456';
+
+FLUSH PRIVILEGES;
+
+EXIT;
+```
+
+### Step 5: Stop safe mode and restart normally
+
+```bash
+sudo pkill mysqld
+sleep 3
+sudo systemctl start mysql
+```
+
+### Step 6: Test the new password
+
+```bash
+mysql -u root -p
+```
+
+---
+
+## 9. Uninstall MySQL Completely
+
+> 🚨 **WARNING:** This will delete **ALL databases and data**. Backup first if needed!
+
+### Step 1: Backup (optional but recommended)
+
+```bash
+sudo mysqldump --all-databases -u root -p > /tmp/all_databases_backup.sql
+```
+
+### Step 2: Stop MySQL
+
+```bash
+sudo systemctl stop mysql
+sudo systemctl disable mysql
+```
+
+### Step 3: Remove all MySQL packages
+
+```bash
+sudo apt-get remove --purge mysql-server mysql-client mysql-common \
+  mysql-server-core-* mysql-client-core-* -y
+
+sudo apt-get autoremove -y
+
+sudo apt-get autoclean -y
+```
+
+### Step 4: Delete MySQL data and config folders
+
+```bash
+sudo rm -rf /etc/mysql
+sudo rm -rf /var/lib/mysql
+sudo rm -rf /var/log/mysql
+sudo rm -rf /var/run/mysqld
+```
+
+### Step 5: Remove MySQL user (optional)
+
+```bash
+sudo deluser mysql 2>/dev/null
+sudo delgroup mysql 2>/dev/null
+```
+
+### Step 6: Verify uninstall
+
+```bash
+# Should return nothing
+which mysql
+
+# Should show no MySQL packages
+dpkg -l | grep mysql
+```
+
+---
+
+## 10. Reinstall MySQL (Fresh Start)
+
+If you uninstalled and want a clean install:
+
+```bash
+# Update package list
+sudo apt update
+
+# Reinstall MySQL Server
+sudo apt-get install mysql-server -y
+
+# Start MySQL
+sudo systemctl start mysql
+
+# Enable on boot
+sudo systemctl enable mysql
+
+# Verify
+sudo systemctl status mysql
+```
+
+Then go back to **Section 3** to set the root password.
+
+---
+
+## ⚠️ Important Notes
+
+| ⚠️ | Reminder |
+|---|---|
+| 🚨 | **Uninstall deletes ALL data** — there is no undo! Backup first. |
+| 🔒 | Use **strong passwords** (12+ chars, mixed case, numbers, symbols). |
+| 💾 | **Backup first** before uninstalling: `mysqldump --all-databases > backup.sql` |
+| 🔑 | After password change, update **`application.properties`** in your Spring Boot apps! |
+| 📌 | Default MySQL port is **3306** — open it in EC2 Security Group if needed. |
+
+---
+
+🛠️ **Trainer:** Rushi · **Brand:** Rushi Infotech — Wise Learners
