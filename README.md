@@ -96,7 +96,7 @@ EXIT;
 ### Step 3: Login with the new password
 
 ```bash
-mysql -u root -p
+sudo mysql -u root -p
 ```
 
 Enter `YourPassword@123` when prompted.
