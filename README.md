@@ -123,7 +123,7 @@ CREATE DATABASE securebank_db;
 SHOW DATABASES;
 
 -- Create the application user
-CREATE USER 'securebank_user'@'localhost' IDENTIFIED BY 'SecurePass@2026';
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'YourPassword@123';
 
 -- Grant full access to the SecureBank database (only this DB)
 GRANT ALL PRIVILEGES ON securebank_db.* TO 'securebank_user'@'localhost';
