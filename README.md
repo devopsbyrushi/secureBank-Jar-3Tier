@@ -113,7 +113,26 @@ After logging in as root, set up the database and user for our SecureBank app.
 sudo mysql -u root -p
 ```
 
+-- Create the application user
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'YourPassword@123';
+
+-- Grant full access to the SecureBank database (only this DB)
+GRANT ALL PRIVILEGES ON securebank_db.* TO 'securebank_user'@'localhost';
+
+-- Refresh privileges again
+FLUSH PRIVILEGES;
+
+-- Verify the user was created
+SELECT user, host FROM mysql.user;
+
+-- Exit
+EXIT;
+
 Inside the MySQL shell:
+
+```bash
+sudo mysql -u root -p
+```
 
 ```sql
 -- Create the SecureBank database
@@ -136,20 +155,6 @@ FLUSH PRIVILEGES;
 -- Exit
 EXIT;
 
--- Create the application user
-ALTER USER 'root'@'localhost' IDENTIFIED BY 'YourPassword@123';
-
--- Grant full access to the SecureBank database (only this DB)
-GRANT ALL PRIVILEGES ON securebank_db.* TO 'securebank_user'@'localhost';
-
--- Refresh privileges again
-FLUSH PRIVILEGES;
-
--- Verify the user was created
-SELECT user, host FROM mysql.user;
-
--- Exit
-EXIT;
 ```
 
 ### Test the new user
