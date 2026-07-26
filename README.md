@@ -108,7 +108,6 @@ Enter `YourPassword@123` when prompted.
 ## 4. Create SecureBank Database & User
 
 After logging in as root, set up the database and user for our SecureBank app.
-
 ```bash
 sudo mysql -u root -p
 ```
