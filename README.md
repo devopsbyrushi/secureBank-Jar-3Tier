@@ -110,7 +110,7 @@ Enter `YourPassword@123` when prompted.
 After logging in as root, set up the database and user for our SecureBank app.
 
 ```bash
-mysql -u root -p
+sudo mysql -u root -p
 ```
 
 Inside the MySQL shell:
