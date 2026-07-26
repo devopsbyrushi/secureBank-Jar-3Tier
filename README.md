@@ -122,6 +122,20 @@ CREATE DATABASE securebank_db;
 -- Verify it was created
 SHOW DATABASES;
 
+-- Create the user
+CREATE USER 'securebank_user'@'localhost'
+IDENTIFIED BY 'SecurePass@2026';
+
+-- Grant permissions
+GRANT ALL PRIVILEGES
+ON securebank_db.*
+TO 'securebank_user'@'localhost';
+
+FLUSH PRIVILEGES;
+
+-- Exit
+EXIT;
+
 -- Create the application user
 ALTER USER 'root'@'localhost' IDENTIFIED BY 'YourPassword@123';
 
